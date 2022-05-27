@@ -6,6 +6,8 @@ import org.junit.*;
 import java.math.*;
 import java.time.*;
 import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 import static org.junit.Assert.*;
 
@@ -73,5 +75,30 @@ public class OrderOperationsImplTest
   public void areCustomersBasedInGivenCity()
   {
     assertTrue (orderOperations.areCustomersBasedInGivenCity(orders, "Abbey Ward"));
+  }
+
+  @Test
+  public void filterOrdersByCustomerCountry()
+  {
+    List<Order> oss = orderOperations.getOrdersFilteredByFunction(orders, os -> os.stream().filter(o -> o.getCustomer().getCountry().equals("UK")).collect(Collectors.toList()));
+    assertNotNull (oss);
+    assertEquals (5, oss.size());
+    assertEquals ("Aleshia", oss.get(0).getCustomer().getFirstName());
+  }
+
+  @Test
+  public void findAnyFrenchCustomer()
+  {
+    assertEquals ("Nicolas", orderOperations.getFilterFunctionForOrders(orders).apply(orders).getFirstName());
+  }
+
+  @Test
+  public void findCustomersByCombiningTwoFilters()
+  {
+    Function<List<Order>, List<Order>> fn1 = f -> orders.stream().filter(o -> o.getCustomer().getCountry().equals("FR")).collect(Collectors.toList());
+    Function<List<Order>, List<Order>> fn2 = f -> orders.stream().filter(o -> o.getCustomer().getLastName().equals("Duminil")).collect(Collectors.toList());
+    Function<List<Order>, List<Order>> fn3 = orderOperations.getCombinedFilter (fn1, fn2);
+    assertNotNull (fn3);
+    assertEquals ("Nicolas", fn3.apply(orders).get(0).getCustomer().getFirstName());
   }
 }
